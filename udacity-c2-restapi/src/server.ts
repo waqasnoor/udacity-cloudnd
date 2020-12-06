@@ -6,6 +6,7 @@ import { IndexRouter } from "./controllers/v0/index.router";
 import bodyParser from "body-parser";
 
 import { V0MODELS } from "./controllers/v0/model.index";
+import { config } from "./config/config";
 
 (async () => {
   await sequelize.addModels(V0MODELS);
@@ -16,15 +17,29 @@ import { V0MODELS } from "./controllers/v0/model.index";
 
   app.use(bodyParser.json());
 
-  //CORS Should be restricted
-  app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "http://localhost:8100");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    next();
-  });
+  if (config.aws_profile === "DEPLOY") {
+    app.use(function (req, res, next) {
+      res.header(
+        "Access-Control-Allow-Origin",
+        "http://udagram-frontend.s3-website.us-east-2.amazonaws.com"
+      );
+      res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+      );
+      next();
+    });
+  } else {
+    //CORS Should be restricted
+    app.use(function (req, res, next) {
+      res.header("Access-Control-Allow-Origin", "http://localhost:8100");
+      res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+      );
+      next();
+    });
+  }
 
   app.use("/api/v0/", IndexRouter);
 

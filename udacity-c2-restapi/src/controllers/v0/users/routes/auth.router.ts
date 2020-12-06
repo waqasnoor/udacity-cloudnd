@@ -8,12 +8,14 @@ import { NextFunction } from "connect";
 
 import * as EmailValidator from "email-validator";
 import { resolve } from "bluebird";
+import { config } from "../../../../config/config";
 
+const c = config;
 const router: Router = Router();
 
-async function generateSalt(rounds: Number): Promise<string> {
+async function generateSalt(rounds: number): Promise<string> {
   return new Promise((resolve, reject) => {
-    bcrypt.genSalt(10, (err, salt) => {
+    bcrypt.genSalt(rounds, (err, salt) => {
       resolve(salt);
     });
   });
@@ -44,12 +46,13 @@ async function comparePasswords(
 function generateJWT(user: User): string {
   //@TODO Use jwt to create a new JWT Payload containing
 
-  const jwtToken = jwt.sign(user.toJSON(), "HelloWorld");
+  const jwtToken = jwt.sign(user.toJSON(), c.jwt_secret);
   return jwtToken;
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   // return next();
+
   if (!req.headers || !req.headers.authorization) {
     return res.status(401).send({ message: "No authorization headers." });
   }
@@ -61,7 +64,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 
   const token = token_bearer[1];
 
-  return jwt.verify(token, "HelloWorld", (err, decoded) => {
+  return jwt.verify(token, config.jwt_secret, (err, decoded) => {
     if (err) {
       return res
         .status(500)
@@ -159,7 +162,7 @@ router.post("/", async (req: Request, res: Response) => {
   // Generate JWT
   const jwt = generateJWT(savedUser);
 
-  res.status(201).send({ token: jwt, user: savedUser.short() });
+  res.status(200).send({ token: jwt, user: savedUser.short() });
 });
 
 router.get("/", async (req: Request, res: Response) => {

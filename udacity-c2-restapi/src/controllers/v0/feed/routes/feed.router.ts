@@ -13,7 +13,8 @@ router.get("/", async (req: Request, res: Response) => {
       item.url = AWS.getGetSignedUrl(item.url);
     }
   });
-  res.send(items);
+  console.log({ items });
+  res.status(200).send(items);
 });
 
 //@TODO

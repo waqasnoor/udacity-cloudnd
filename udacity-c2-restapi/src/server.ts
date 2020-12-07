@@ -1,4 +1,13 @@
 import express from "express";
+import * as Sentry from "@sentry/node";
+import * as Tracing from "@sentry/tracing";
+
+import { config } from "./config/config";
+
+Sentry.init({
+  dsn: config.sentry_dsn,
+});
+
 import { sequelize } from "./sequelize";
 
 import { IndexRouter } from "./controllers/v0/index.router";
@@ -6,7 +15,6 @@ import { IndexRouter } from "./controllers/v0/index.router";
 import bodyParser from "body-parser";
 
 import { V0MODELS } from "./controllers/v0/model.index";
-import { config } from "./config/config";
 
 (async () => {
   await sequelize.addModels(V0MODELS);
@@ -15,31 +23,19 @@ import { config } from "./config/config";
   const app = express();
   const port = process.env.PORT || 8080; // default port to listen
 
+  app.use(Sentry.Handlers.requestHandler());
+
   app.use(bodyParser.json());
 
-  if (config.aws_profile === "DEPLOY") {
-    app.use(function (req, res, next) {
-      res.header(
-        "Access-Control-Allow-Origin",
-        "http://udagram-frontend.s3-website.us-east-2.amazonaws.com"
-      );
-      res.header(
-        "Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-      );
-      next();
-    });
-  } else {
-    //CORS Should be restricted
-    app.use(function (req, res, next) {
-      res.header("Access-Control-Allow-Origin", "http://localhost:8100");
-      res.header(
-        "Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-      );
-      next();
-    });
-  }
+  //CORS Should be restricted
+  app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    );
+    next();
+  });
 
   app.use("/api/v0/", IndexRouter);
 
@@ -48,6 +44,7 @@ import { config } from "./config/config";
     res.send("/api/v0/");
   });
 
+  app.use(Sentry.Handlers.errorHandler());
   // Start the Server
   app.listen(port, () => {
     console.log(`server running http://localhost:${port}`);

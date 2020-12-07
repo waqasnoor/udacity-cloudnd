@@ -8,6 +8,9 @@ const {
   DB_AWS_PROFILE,
   DB_AWS_MEDIA_BUCKET,
   JWT_SECRET,
+  AWS_ACCESS_KEY_ID,
+  AWS_SECRET_KEY_ID,
+  SENTRY_DSN,
 } = process.env;
 
 export const config = {
@@ -20,4 +23,7 @@ export const config = {
   aws_profile: DB_AWS_PROFILE,
   aws_media_bucket: DB_AWS_MEDIA_BUCKET,
   jwt_secret: JWT_SECRET,
+  aws_access_key_id: AWS_ACCESS_KEY_ID,
+  aws_secret_key_id: AWS_SECRET_KEY_ID,
+  sentry_dsn: SENTRY_DSN,
 };

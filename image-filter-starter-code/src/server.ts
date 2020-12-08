@@ -1,7 +1,9 @@
 import bodyParser from "body-parser";
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
+import * as jwt from "jsonwebtoken";
 
 import { deleteLocalFiles, filterImageFromURL } from "./util/util";
+import { config } from "./config/config";
 
 (async () => {
   // Init the Express application
@@ -29,8 +31,31 @@ import { deleteLocalFiles, filterImageFromURL } from "./util/util";
 
   /**************************************************************************** */
 
+  function requireAuth(req: Request, res: Response, next: NextFunction) {
+    if (!req.headers || !req.headers.authorization) {
+      return res.status(401).send({ message: "No authorization headers." });
+    }
+
+    const token_bearer = req.headers.authorization.split(" ");
+    if (token_bearer.length != 2) {
+      return res.status(401).send({ message: "Malformed token." });
+    }
+
+    const token = token_bearer[1];
+
+    return jwt.verify(token, config.jwt_secret, (err, decoded) => {
+      if (err) {
+        return res
+          .status(500)
+          .send({ auth: false, message: "Failed to authenticate." });
+      }
+      return next();
+    });
+  }
+
   app
     .route("/filteredimage")
+    .all(requireAuth)
     .get(async function getFilteredImage(req: Request, res: Response) {
       const { image_url } = req.query;
       if (!image_url) {

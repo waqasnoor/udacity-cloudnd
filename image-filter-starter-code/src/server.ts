@@ -1,9 +1,12 @@
 import bodyParser from "body-parser";
 import express, { Request, Response, NextFunction } from "express";
 import * as jwt from "jsonwebtoken";
+import * as Sentry from "@sentry/node";
 
 import { deleteLocalFiles, filterImageFromURL } from "./util/util";
 import { config } from "./config/config";
+
+Sentry.init({ dsn: config.sentry_dsn });
 
 (async () => {
   // Init the Express application

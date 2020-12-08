@@ -4,12 +4,14 @@ import { config } from "./config/config";
 const c = config;
 
 //Configure AWS
-if (c.aws_profile !== "DEPLOYED") {
-  var credentials = new AWS.SharedIniFileCredentials({ profile: "default" });
-  AWS.config.credentials = credentials;
-}
-// var credentials = new AWS.SharedIniFileCredentials({ profile: c.aws_profile });
-// AWS.config.credentials = credentials;
+// if (c.aws_profile !== "DEPLOYED") {
+var credentials = new AWS.Credentials(c.aws_access_key_id, c.aws_secret_key_id);
+AWS.config.credentials = credentials;
+// }
+// else {
+//   var credentials = new AWS.SharedIniFileCredentials({ profile: "invalid" });
+//   AWS.config.credentials = credentials;
+// }
 
 export const s3 = new AWS.S3({
   signatureVersion: "v4",
